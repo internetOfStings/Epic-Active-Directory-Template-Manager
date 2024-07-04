@@ -5,7 +5,7 @@ Add-Type -AssemblyName System.Drawing
 ##### IDEA: Use object to store variabel values like $yPos. Ones taht change and need a default value #####
 # Sets variables
 $userFilePath = '..\SupplementaryFiles\ADUserFiles\Users.csv'
-$userTemplatePath = '' ##### Not in use yet #####
+$userTemplatesPath = $env:USERPROFILE + '\Desktop\ADUserTemplates\' 
 $defaultWebsitesFilePath = '..\SupplementaryFiles\ADUserFiles\Sites.json'
 
 # Loads data ###### Turn this into a function that reloads all data that needs to be imported
@@ -15,16 +15,17 @@ $adGroups = Get-ADGroup -Filter * -Properties *
 #$defaultWebsites = Import-csv $defaultWebsitesFilePath
 $jsonContent = Get-Content -Raw -Path $defaultWebsitesFilePath
 $defaultWebsites = $jsonContent | ConvertFrom-Json
+$userTemplates = $jsonContent | ConvertFrom-Json
+$domainName = $env:USERDNSDOMAIN
 
 
 # Defines functions that create a Windows form object
 function New-Label{
     param (
         [string]$Text,
-        [object]$Location,
+        [object]$Location, ##### change location to "addTo"
         [int]$xPos,
-        [int]$yPos,
-        [int]$xSize,
+        [int]$yPos, [int]$xSize,
         [int]$ySize
     )
     $label = New-Object System.Windows.Forms.Label
@@ -211,6 +212,7 @@ $form.Text = 'Epic Active Directory Template Manager'
 $form.Size = New-Object System.Drawing.Size(1024,768)
 $font = New-Object System.Drawing.Font("Arial", 15, [System.Drawing.FontStyle]::Bold)
 $form.Font = $font
+$form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 
 
 # Creates a tab control to hold tabs
@@ -322,8 +324,16 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
         # Makes button to be used wtih $searchBox_A1
         $searchButton_A2 = New-Button -Text 'Search' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A2; $yPos += 35
 
-        # Makes Button that adds user info the the User Info section of pane B
-        $button_A2 = New-Button -Text 'Add Account Data to User Info' -xSize 450 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A2; $yPos += 35
+        # Makes button that adds user info the the User Info section of pane B
+        $button_A2 = New-Button -Text 'Add User' -xSize 220 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A2
+
+        # Makes button to add meta data to teh Exta Data in tabPage_C2
+        $findDataButton_A2 = New-Button -Text 'Get Info' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A2; $yPos += 35
+
+            $findDataButton_A2.Add_Click({
+                $selectedRadioButton = $panel_a2.controls | where-object { $_ -is [system.windows.forms.radiobutton] -and $_.checked }
+                $tabPage_B5 = New-TabPage -Text $selectedRadioButton.Text -addTo $tabControl_B #########################here
+            })
 
         # Create a scrollable panel_A1 to hold the checkboxes
         $panel_A2 = New-Panel -xSize 490 -xPos 0 -yPos $yPos -addTo $tabPage_A2
@@ -375,6 +385,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
 
                     $userDataTypes2 = $tabPage_B1.controls | where-object { $_ -is [system.windows.forms.textbox] }
                     $buttoncounter_A2 = 0 # counter is used to only loop though the textboxes we want to change (after the first 6)
+                    ########### IDEA: MAKE DIFFERENT PANELS AND ARRAYS TO DO THIS NOT THIS STUPID COUTER ###########
                     foreach ($data in $userdatatypes2){
                         if ($buttoncounter_a2 -ge 6) {
                             $name = $userDataTypes[$buttoncounter_A2]
@@ -427,7 +438,17 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
                 } else {
                     [System.Windows.Forms.MessageBox]::Show("Please select a user.")
                 }
+            
+
+                #$ouTextBox.Text  = $selecteduser.distinguishedname
+                #Finds OU, splits it, removes the name, then displays the result
+                $splitOU = ($selectedUser.distinguishedName -split ",")
+                $ouTextBox.Text = $splitOU[1] + ',' + $splitOU[2] + ',' + $splitOU[3]
+
+
             })
+            
+        
 
 
     # Tab for Groups 
@@ -445,7 +466,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
         $addSelectedButton_A3 = New-Button -Text 'Add Selected' -xSize 220 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A3
 
         # Makes Button that lists users from seleced group
-        $getUsersButton_A3 = New-Button -Text 'Get Users' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A3; $yPos += 35
+        $getUsersButton_A3 = New-Button -Text 'Get Info' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A3; $yPos += 35
 
         # Create a scrollable panel_A1 to hold the checkboxes
         $panel_A3 = New-Panel -xSize 490 -xPos 0 -yPos $yPos -addTo $tabPage_A3
@@ -507,6 +528,74 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
         })
 
     $tabPage_A4 = New-TabPage -Text 'Templates' -addTo $tabControl_A
+        $yPos = 20 
+
+        # Search box for searching users
+        $searchBox_A4 = New-TextBox -xSize 220 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A4
+
+        # Makes button to be used wtih $searchBox_A1
+        $searchButton_A4 = New-Button -Text 'Search' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A4; $yPos += 35
+
+        # Makes button that adds selected group to the group tabControl_B3
+        # Use the same buttion the "add selected" to tabPage_B1 (Selected User) or tabPage_B2 (Selected Group)?
+        $addSelectedButton_A4 = New-Button -Text 'Add Selected' -xSize 220 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A4
+
+
+
+
+        # Makes Button that lists users from seleced group
+        $getUsersButton_A4 = New-Button -Text 'Get Info' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A4; $yPos += 35
+
+        # Create a scrollable panel_A1 to hold the checkboxes
+        $panel_A4 = New-Panel -xSize 490 -xPos 0 -yPos $yPos -addTo $tabPage_A4
+
+
+        # Event handler for Enter key press in the search box
+        $searchBox_A4.Add_KeyDown({
+            param($sender, $e)
+            if ($e.KeyCode -eq [System.Windows.Forms.Keys]::Enter) {
+                # Call the search button click event when Enter key is pressed
+                $searchButton_A4.PerformClick()
+            }
+        })
+    
+        # Add event handler for the search button
+        $searchButton_A4.Add_Click({
+            # Get the search term from the search box
+            $searchTerm = $searchBox_A4.Text
+            try {
+                # Clear existing radio buttons
+                $panel_A4.Controls.Clear()
+
+                $templates = Get-ChildItem $userTemplatesPath | Select-Object -ExpandProperty Name 
+                write-Host $packageFullName
+
+                    $yPos = 5
+                    foreach ($template in $templates) {
+                        $radioButton = New-RadioButton -Text $template -Name $template -xSize 450 -ySize 35 -xPos 20 -yPos $yPos -addTo $panel_A4
+                        #$selectedRadioButtons_A4.Add($radioButton)
+                        $yPos += 35
+                    }
+
+
+
+           } catch {
+                # Handle errors, if any
+                [System.Windows.Forms.MessageBox]::Show("Error: $_")
+            }
+        })
+
+
+        $addSelectedButton_A4.Add_Click({
+            $selectedTemplate = $panel_A4.controls | where-object { $_ -is [system.windows.forms.radiobutton] -and $_.Checked }
+            $selectedTemplatePath = $userTemplatesPath + $selectedTemplate.Name
+            $selectedTemplateContent = Get-Content -Raw -Path $selectedTemplatePath
+            Write-Host $selectedTemplateContent
+
+        })
+
+
+
 
 
 # Create tab control B
@@ -533,6 +622,13 @@ $tabControl_B = New-TabControl -xSize 500 -ySize 550 -xPos 506 -yPos 10 -addTo $
             $yPosTabPage_B2 += 35
         }
 
+        $passwordLabel = New-Label -Text "User Password:" -xSize 220 -ySize 30 -xPos 20 -yPos $yPosTabPage_B2 -Location $tabPage_B2
+        $passwordTextBox = New-TextBox -Text "P@ssw0rd" -xSize 220 -ySize 30 -xPos 250 -yPos $yPosTabPage_B2 -addTo $tabPage_B2
+        $yPosTabPage_B2 += 35
+
+        $ouLabel = New-Label -Text "User OU:" -xSize 220 -ySize 30 -xPos 20 -yPos $yPosTabPage_B2 -Location $tabPage_B2
+        $ouTextBox = New-TextBox -Text "" -xSize 220 -ySize 30 -xPos 250 -yPos $yPosTabPage_B2 -addTo $tabPage_B2
+
     $tabPage_B3= New-TabPage -Text 'Groups' -addTo $tabControl_B
         $panel_B3 = New-Panel -xSize 490 -xPos 0 -yPos 0 -addTo $tabPage_B3 # Used to house Groups
 
@@ -546,34 +642,138 @@ $tabControl_B = New-TabControl -xSize 500 -ySize 550 -xPos 506 -yPos 10 -addTo $
             $yPosTabPage_B4 += 35
         }
 
+
+
 # Makes button for the reload feature
-$reloadAllData_Form = New-Button -Text "Reload All Data" -xSize 500 -ySize 30 -xPos 3 -yPos 565 -AddTo $form
 
+$tabControl_C = New-TabControl -xSize 1003 -ySize 158 -xPos 3 -yPos 565 -addTo $form
 
-# Makes button for the Add User to Active Directory feature
-$addADUserButton_Form = New-Button -Text "Add User to Active Directory" -xSize 500 -ySize 30 -xPos 506 -yPos 565 -AddTo $form
+$tabPage_C1 = New-TabPage -Text "Controls" -addTo $tabControl_C
 
-    $addADUserButton_Form.Add_Click({
+    $reloadAllData_Form = New-Button -Text "Reload All Data" -xSize 450 -ySize 30 -xPos 20 -yPos 10 -AddTo $tabPage_C1
 
-        # Grabs user info from tabpage_b1
-        $newUserTextBoxes = $tabPage_B1.controls | where-object { $_ -is [system.windows.forms.textbox] }
+    #$addTemplateButton_Form = New-Button -Text "Progress Bar Here" -xSize 500 -ySize 30 -xPos 3 -yPos 600 -addTo $form
 
-        New-ADUser -GivenName $newUserTextBoxes[0].Text -Initials $newUserTextBoxes[1].Text -SurName $newUserTextBoxes[2].Text -Name $newUserTextBoxes[3].Text -DisplayName $newUserTextBoxes[3].Text -SamAccountName $newUserTextBoxes[4].Text -Description $newUserTextBoxes[5].Text -Title $newUserTextBoxes[6].Text -Office $newUserTextBoxes[7].Text -Department $newUserTextBoxes[8].Text -Company $newUserTextBoxes[9].Text #-Organization -OfficePhone $selectedUser.OfficePhone -CannotChangePassword $cannotChangePassword -PasswordNeverExpires $passwordNeverExpires -Enabled $enabled -AccountPassword "Apple21*"
+    # Makes button for the0Add User to Active Directory feature
+    $addADUserButton_Form = New-Button -Text "Add User to Active Directory" -xSize 450 -ySize 30 -xPos 526 -yPos 10 -AddTo $tabPage_C1
 
-        foreach ($site in $defaultWebsites) { 
-            if ($site.ComboBoxObject.SelectedItem) {
-                $tempText = $site.ComboBoxObject.SelectedItem + $site.TextBoxObject.Text
-                write-host $tempText
+        $addADUserButton_Form.Add_Click({
+
+            # Grabs user info from tabpage_b1
+            $newUserTextBoxes = $tabPage_B1.controls | where-object { $_ -is [system.windows.forms.textbox] }
+            $newUserCheckBoxes = $tabPage_B2.controls | where-object { $_ -is [system.windows.forms.checkbox] }
+            $newUserGroups= $panel_B3.controls | where-object { $_ -is [system.windows.forms.checkbox] -and $_.Checked }
+            $newUserSites = $tabPage_B4.controls | where-object { $_ -is [system.windows.forms.textbox] -and $_.Text }
+
+            foreach($site in $newUserSites) {
+                write-Host $site.Text
             }
-        }
-    })
+
+            $userPrincipalName = $newUserTextBoxes[5].Text + '@' + $domainName # For the logon name 
+
+            write-Host $newUserTextBoxes[4].Text 
+            New-ADUser -GivenName $newUserTextBoxes[0].Text -Initials $newUserTextBoxes[1].Text -SurName $newUserTextBoxes[2].Text -Name $newUserTextBoxes[3].Text -DisplayName $newUserTextBoxes[4].Text -SamAccountName $newUserTextBoxes[5].Text -Description $newUserTextBoxes[5].Text -UserPrincipalName $userPrincipalName -Title $newUserTextBoxes[6].Text -Office $newUserTextBoxes[7].Text -Department $newUserTextBoxes[8].Text -Company $newUserTextBoxes[9].Text -Path $ouTextBox.Text
+            Set-ADAccountPassword -Identity $newUserTextBoxes[5].Text  -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $passwordTextBox.Text -Force)
+            #### Make Set-ADUser more modular
+            Set-ADUser -Identity $newUserTextBoxes[5].Text -CannotChangePassword $newUserCheckBoxes[0].Checked -PasswordNeverExpires $newUserCheckBoxes[1].Checked -Enabled $newUserCheckBoxes[2].Checked
+
+            foreach ($group in $newUserGroups) {  
+                Add-ADGroupMember -Identity $group.Text -Members $newUserTextBoxes[5].Text
+            }
 
 
-# Makes button and text box for the Save As Template feature
-$addTemplateButton_Form = New-Button -Text "Save As Template" -xSize 245 -ySize 30 -xPos 761 -yPos 600 -addTo $form
-$addTemplateTextBox_Form = New-TextBox -xSize 245 -ySize 30 -xPos 506 -yPos 600 -addTo $form
+            foreach ($url in $newUserSites) {
+                Set-ADUser -Identity $newUserTextBoxes[5].Text -Add @{'url'=$url.Text}
+            }
 
 
+            foreach ($site in $defaultWebsites) { 
+                if ($site.ComboBoxObject.SelectedItem) {
+                    $tempText = $site.ComboBoxObject.SelectedItem + $site.TextBoxObject.Text
+                    write-host $tempText
+                }
+            }
+
+            
+
+        })
+
+
+    # Makes button and text box for the Save As Template feature
+    $addTemplateTextBox_Form = New-TextBox -xSize 220 -ySize 30 -xPos 526 -yPos 75 -addTo $tabPage_C1
+    $addTemplateButton_Form = New-Button -Text "Save As Template" -xSize 220 -ySize 30 -xPos 756 -yPos 75 -addTo $tabPage_C1
+
+        $addTemplateButton_Form.Add_Click({
+
+            $newUserTextBoxes = $tabPage_B1.controls | where-object { $_ -is [system.windows.forms.textbox] }
+            $newUserGroups = $panel_B3.controls | where-object { $_ -is [system.windows.forms.checkbox] -and $_.Checked }
+            $newUserSites = $tabPage_B4.controls | where-object { $_ -is [system.windows.forms.textbox] -and $_.Text }
+            $newUserCheckBoxes = $tabPage_B2.controls | where-object { $_ -is [system.windows.forms.checkbox] }
+            $userPrincipalName = $newUserTextBoxes[5].Text + '@' + $domainName # For the logon name 
+
+
+
+
+
+            #write-Host $newUserGroups[0].Name
+            #write-Host $newUserTextBoxes
+            # Create a PowerShell object with your variables
+            $newTemplateData = @{
+                "GivinName" = $newUserTextBoxes[0].Text 
+                "Initials" = $newUserTextBoxes[1].Text 
+                "SurName" = $newUserTextBoxes[2].Text 
+                "Name" = $newUserTextBoxes[3].Text 
+                "DisplayName" = $newUserTextBoxes[4].Text 
+                "SamAccountName" = $newUserTextBoxes[5].Text 
+                "Description" = $newUserTextBoxes[5].Text 
+                "UserPrincipalName" = $userPrincipalName 
+                "Title" = $newUserTextBoxes[6].Text 
+                "Office" = $newUserTextBoxes[7].Text 
+                "Department" = $newUserTextBoxes[8].Text 
+                "Company" = $newUserTextBoxes[9].Text
+                "CannotChangePassword" = $newUserCheckBoxes[0].CheckState
+                "PasswordNeverExpires" = $newUserCheckBoxes[1].CheckState
+                "Enabled" = $newUserCheckBoxes[2].CheckState
+                "UserOU" = $ouTextBox.Text
+            }
+
+            if ($newUserGroups){ 
+                #write-Host $newUserGroups[0].Name
+                #$newTemplateData.add("hello", "$newUserGroups")
+
+                $groupCounter = 0
+                foreach ($group in $newUserGroups) {
+                    $groupHolder = $group.Text
+                    $groupHolder2 = "Group_" + $groupCounter; $groupCounter++ 
+                    $newTemplateData = $newTemplateData + @{$groupHolder2 ="$groupHolder"}
+                    }
+
+                } else {
+                    Write-Host "No Groups"
+                    #$newUserGroups.Count
+                }
+
+                #write-Host $newTemplateData
+
+                # Convert the object to JSON
+                $jsonData = $newTemplateData | ConvertTo-Json
+
+                $templateName = $addTemplateTextBox_Form.text
+                
+                $newJsonFile = $userTemplatesPath + '\' + $templateName + '.json'
+
+                # Save JSON data to a file
+                $jsonData | Out-File -FilePath $newJsonFile
+
+        })
+
+$tabPage_C2 = New-TabPage -Text "Other Data" -addTo $tabControl_C
+
+$tabPage_C3 = New-TabPage -Text "Template Settings" -addTo $tabControl_C
+
+$tabPage_C4 = New-TabPage -Text "Password Settings" -addTo $tabControl_C
+
+$tabPage_C5 = New-TabPage -Text "About" -addTo $tabControl_C
 
 # Display the form
 [void]$form.ShowDialog()
