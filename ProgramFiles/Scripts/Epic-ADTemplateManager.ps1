@@ -2,7 +2,7 @@ Import-Module ActiveDirectory
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-##### IDEA: Use object to store variabel values like $yPos. Ones taht change and need a default value #####
+##### IDEA: Use object to store variable values like $yPos. Ones taht change and need a default value #####
 # Sets variables
 $userFilePath = '..\SupplementaryFiles\ADUserFiles\Users.csv'
 $userTemplatesPath = $env:USERPROFILE + '\Desktop\ADUserTemplates\' 
@@ -34,7 +34,7 @@ function New-Label{
     $label.Location = New-Object System.Drawing.Point($xPos, $yPos)
     $Location.Controls.Add($label)
 
-    return $label #Return $label to it can be used outside of this fuction ##### Check to make sure this statement is true
+    return $label #Return $label to it so it can be used outside of this fuction ##### Check to make sure this statement is true
 }
 
 function New-TextBox{
@@ -52,7 +52,7 @@ function New-TextBox{
     $textBox.Location = New-Object System.Drawing.Point($xPos, $yPos)
     $addTo.Controls.Add($textBox)
 
-    return $textBox #Returns $textbox to it can be used outside of this fuction
+    return $textBox #Returns $textbox so it can be used outside of this fuction
 }
 
 function New-Button{
@@ -185,7 +185,7 @@ function New-RadioButton{
 
 
 # These arrays hold data that is used to create/edit Windows form objects
-$userDataTypes = @( #Holds text for tabPage_B1
+$userDataTypes = @( # Holds text for tabPage_B1
     'GivenName',
     'Initials',
     'SurName',
@@ -199,7 +199,7 @@ $userDataTypes = @( #Holds text for tabPage_B1
     'Company'
 )
 
-$moreDataTypes = @( #Holds text for tabPage_B2
+$moreDataTypes = @( # Holds text for tabPage_B2
     "CannotChangePassword",
     "PasswordNeverExpires",
     "Enabled"
@@ -287,7 +287,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
                 [System.Windows.Forms.MessageBox]::Show("Error: $_")
             }
         })
-########################### Left off here ############################
+########################### Left off refactoring code here ############################
 
         $button_A1.Add_Click({
             # Finds the selected radio button in panel_A1
@@ -373,10 +373,10 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
 
             $button_A2.Add_Click({
 
-                $groupDataTypes = @() # Clears the array to there are no orphan objects ##### Not needed? ####
+                $groupDataTypes = @() # Clears the array to there are no orphan objects ##### Not needed? #####
                 $panel_b3.controls.clear() # fyi .controls.clear() cannot work on tab pages but works on panels
 
-                # find the selected radio button into panel_a1
+                # Find the selected radio button into panel_a1
                 $selectedradiobutton = $panel_a2.controls | where-object { $_ -is [system.windows.forms.radiobutton] -and $_.checked }
 
                 if ($selectedradiobutton -ne $null) { 
@@ -396,7 +396,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
                         }
                     }
 
-                    # gets all the text box objects from tabPage_B2. You would not need the where-object because there are only textboxes on that panel, but it future proofs the code.
+                    # Gets all the text box objects from tabPage_B2. You would not need the where-object because there are only textboxes on that panel, but it future proofs the code.
                     $moreDataTypes2 = $tabPage_B2.controls | where-object { $_ -is [system.windows.forms.checkbox] }
                     # Checks the box if the selected user has that option, Unselects it if it does not
                     foreach ($data in $moreDataTypes2){
@@ -423,7 +423,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
                         $yPosTabPage_B3 += 35
                     }
 
-                    foreach ($url in $defaultWebsites.TextBoxObject) { # Clears the text boxes so new data can be added.
+                    foreach ($url in $defaultWebsites.TextBoxObject) { # Clears the text boxes so new data can be added ##### Can I just add the new data?
                         $url.Text = ''
                     }
 
@@ -463,7 +463,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
 
         # Makes button that adds selected group to the group tabControl_B3
         # Use the same buttion the "add selected" to tabPage_B1 (Selected User) or tabPage_B2 (Selected Group)?
-        $addSelectedButton_A3 = New-Button -Text 'Add Selected' -xSize 220 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A3
+        $addSelectedButton_A3 = New-Button -Text 'Add Selected' -xSize 220 -ySize 30 -xPos 20 -yPos $yPos -addTo $tabPage_A3Refactoring code
 
         # Makes Button that lists users from seleced group
         $getUsersButton_A3 = New-Button -Text 'Get Info' -xSize 220 -ySize 30 -xPos 250 -yPos $yPos -addTo $tabPage_A3; $yPos += 35
@@ -493,10 +493,10 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
                 $filteredGroups = $adGroups | Where-Object { $_.distinguishedname -like "*$searchTerm*"}
 
                 # Adds list of groups to the screen/panel_A3
-                $selectedRadioButtons_A3 = New-Object System.Collections.ArrayList # makes an array for the radio button objecs to be held, like a mother holds her child.
+                $selectedRadioButtons_A3 = New-Object System.Collections.ArrayList # Makes an array for the radio button objecs to be held, like a mother holds her child.
 
                 $yPos = 5
-                foreach ($group in $filteredGroups) {
+                foreach ($group in $filteredGroups) {Refactoring code
                     $radioButton = New-RadioButton -Text $group.Name -Name $group.Name -xSize 450 -ySize 35 -xPos 20 -yPos $yPos -addTo $panel_A3
                     $selectedRadioButtons_A3.Add($radioButton)
                     $yPos += 35
@@ -507,9 +507,9 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
             }
         })
 
-        $addSelectedButton_A3.Add_Click({ #adds selected group to tabPage_B3
+        $addSelectedButton_A3.Add_Click({ # Adds selected group to tabPage_B3
         
-            $yPosTabPage_B3 = $panel_B3.Controls.Count * 35 + 20 # grabs that count of objects on panel_b3 to determin how far down to make each object
+            $yPosTabPage_B3 = $panel_B3.Controls.Count * 35 + 20 # Grabs that count of objects on panel_b3 to determine how far down to make each object
 
             $selectedRadioButton_A3  = $panel_A3.controls | where-object { $_ -is [system.windows.forms.radiobutton] -and $_.checked }
             foreach ($selectedButton in $selectedRadioButton_A3){
@@ -606,7 +606,7 @@ $tabControl_B = New-TabControl -xSize 500 -ySize 550 -xPos 506 -yPos 10 -addTo $
         # Creates the display of user information under the "User Info" tab
         $yPosLabel_B1 = 22.5; $yPosTextBox_B1 = 20
 
-        # Loops through each object in $userDataTypes and creates a Label and TextBox for each to display them to the scteen
+        # Loops through each object in $userDataTypes and creates a Label and TextBox for each to display them to the screen
         foreach ($data in $userDataTypes) {
             $tempText = $data + ':'
             $LabelVariable = New-Label -Text $tempText -xSize 220 -ySize 30 -xPos 20 -yPos $yPosLabel_B1 -Location $tabPage_B1
@@ -636,7 +636,7 @@ $tabControl_B = New-TabControl -xSize 500 -ySize 550 -xPos 506 -yPos 10 -addTo $
 
         $yPosTabPage_B4 = 20
         foreach ($site in $defaultWebsites) { # Change this so the amount of combo boxes are not tied to the csv
-            # Make a seperate file with 10 spots, use a second csv to append the corret information?
+            # Make a separate file with 10 spots, use a second csv to append the correct information?
             $site.ComboBoxObject = New-ComboBox -xSize 220 -ySize 30 -xPos 20 -yPos $yPosTabPage_B4 -addTo $tabPage_B4
             $site.TextBoxObject = New-TextBox -xSize 220 -ySize 30 -xPos 250 -yPos $yPosTabPage_B4 -addTo $tabPage_B4 
             $yPosTabPage_B4 += 35
@@ -715,8 +715,8 @@ $tabPage_C1 = New-TabPage -Text "Controls" -addTo $tabControl_C
 
 
 
-            #write-Host $newUserGroups[0].Name
-            #write-Host $newUserTextBoxes
+            # write-Host $newUserGroups[0].Name
+            # write-Host $newUserTextBoxes
             # Create a PowerShell object with your variables
             $newTemplateData = @{
                 "GivinName" = $newUserTextBoxes[0].Text 
@@ -738,8 +738,8 @@ $tabPage_C1 = New-TabPage -Text "Controls" -addTo $tabControl_C
             }
 
             if ($newUserGroups){ 
-                #write-Host $newUserGroups[0].Name
-                #$newTemplateData.add("hello", "$newUserGroups")
+                # write-Host $newUserGroups[0].Name
+                # $newTemplateData.add("hello", "$newUserGroups")
 
                 $groupCounter = 0
                 foreach ($group in $newUserGroups) {
@@ -750,10 +750,10 @@ $tabPage_C1 = New-TabPage -Text "Controls" -addTo $tabControl_C
 
                 } else {
                     Write-Host "No Groups"
-                    #$newUserGroups.Count
+                    # $newUserGroups.Count
                 }
 
-                #write-Host $newTemplateData
+                # write-Host $newTemplateData
 
                 # Convert the object to JSON
                 $jsonData = $newTemplateData | ConvertTo-Json
