@@ -2,7 +2,7 @@ Import-Module ActiveDirectory
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-##### IDEA: Use object to store variable values like $yPos. Ones taht change and need a default value #####
+##### IDEA: Use object to store variable values like $yPos. Ones that change and need a default value #####
 # Sets variables
 $userFilePath = '..\SupplementaryFiles\ADUserFiles\Users.csv'
 $userTemplatesPath = $env:USERPROFILE + '\Desktop\ADUserTemplates\' 
@@ -493,8 +493,7 @@ $tabControl_A = New-TabControl -xSize 500 -ySize 550 -xPos 3 -yPos 10 -addTo $fo
                 $filteredGroups = $adGroups | Where-Object { $_.distinguishedname -like "*$searchTerm*"}
 
                 # Adds list of groups to the screen/panel_A3
-                $selectedRadioButtons_A3 = New-Object System.Collections.ArrayList # Makes an array for the radio button objecs to be held, like a mother holds her child.
-
+                $selectedRadioButtons_A3 = New-Object System.Collections.ArrayList # Makes an array for the radio button objecs to be held
                 $yPos = 5
                 foreach ($group in $filteredGroups) {Refactoring code
                     $radioButton = New-RadioButton -Text $group.Name -Name $group.Name -xSize 450 -ySize 35 -xPos 20 -yPos $yPos -addTo $panel_A3
